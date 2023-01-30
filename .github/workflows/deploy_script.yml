@@ -1,20 +1,33 @@
 name: Deploy to Heroku
 
+env:
+  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+  HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+
 on:
   push:
     branches: ["master"]
+
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
-      - name: Maven build/package
-        run: mvn -B package --file pom.xml
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: "8"
 
-      - name: Docker image push
-        run: heroku container:push web --app springboot-intens
+      - name: Build with Maven
+        run: mvn -B package -DskipTests --file pom.xml
 
-      - name: Docker image release
-        run: heroku container:release web --app springboot-intens
+      - name: Heroku Container Registry login
+        run: heroku container:login
+
+      - name: Build and push
+        run: heroku container:push -a $HEROKU_API_KEY web
+
+      - name: Release
+        run: heroku container:release -a $HEROKU_APP_NAME web
