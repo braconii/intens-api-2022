@@ -7,14 +7,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
 
-      - name: Setup Maven Action
-        uses: s4u/setup-maven-action@v1.2.1
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
-          java-version: 8
+          java-version: "17"
+          distribution: "temurin"
 
       - name: Build with Maven
-        run: export PORT=${{ secrets.PORT }} && mvn test && unset PORT
+        run: mvn --batch-mode --update-snapshots package
