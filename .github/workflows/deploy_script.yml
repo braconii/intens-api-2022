@@ -35,15 +35,17 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       # Clone the repository
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: Build, Push and Release a Docker container to Heroku.
+        uses: gonuit/heroku-docker-deploy@v1.3.3
+        with:
+          email: ${{ secrets.HEROKU_EMAIL }}
 
-      # Build Docker image
-      - name: Docker build
-        run: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
 
-      # Push the Docker image to Heroku Container Registry
-      - name: Publish
-        run: |
-          heroku container:push web -a $APP_NAME
-          heroku container:release web -a $APP_NAME
+          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+
+          dockerfile_directory: ./
+
+          dockerfile_name: Dockerfile
+
+          docker_options: "--no-cache"
