@@ -3,26 +3,47 @@ name: Deploy to Heroku
 on:
   push:
     branches: ["master"]
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
+
+#       - name: Set up Java environment
+#         uses: actions/setup-java@v1
+#         with:
+#           java-version: "1.8"
+#           cache: maven
+
+#       - name: Build with Maven
+#         run: mvn clean package
+
+#       - name: Build and Deploy
+#         uses: gonuit/heroku-docker-deploy@v1.3.3
+#         with:
+#           email: ${{secrets.HEROKU_EMAIL}}
+#           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+#           heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+env:
+  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+  APP_NAME: ${{ 'dotnet-docker-heroku-app' }}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    name: Deploy to Heroku
+    runs-on: ubuntu-18.04
     steps:
+      # Clone the repository
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set up Java environment
-        uses: actions/setup-java@v1
-        with:
-          java-version: "1.8"
-          cache: maven
+      # Build Docker image
+      - name: Docker build
+        run: docker login --username=_ --password=$HEROKU_API_KEY registry.heroku.com
 
-      - name: Build with Maven
-        run: mvn clean package
-
-      - name: Build and Deploy
-        uses: gonuit/heroku-docker-deploy@v1.3.3
-        with:
-          email: ${{secrets.HEROKU_EMAIL}}
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+      # Push the Docker image to Heroku Container Registry
+      - name: Publish
+        run: |
+          heroku container:push web -a $APP_NAME
+          heroku container:release web -a $APP_NAME
