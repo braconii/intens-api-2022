@@ -3,49 +3,18 @@ name: Deploy to Heroku
 on:
   push:
     branches: ["master"]
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v2
-
-#       - name: Set up Java environment
-#         uses: actions/setup-java@v1
-#         with:
-#           java-version: "1.8"
-#           cache: maven
-
-#       - name: Build with Maven
-#         run: mvn clean package
-
-#       - name: Build and Deploy
-#         uses: gonuit/heroku-docker-deploy@v1.3.3
-#         with:
-#           email: ${{secrets.HEROKU_EMAIL}}
-#           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-#           heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
-env:
-  HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-  APP_NAME: ${{ 'dotnet-docker-heroku-app' }}
-
 jobs:
-  deploy:
-    name: Deploy to Heroku
-    runs-on: ubuntu-18.04
+  build:
+    runs-on: ubuntu-latest
     steps:
-      # Clone the repository
-      - name: Build, Push and Release a Docker container to Heroku.
-        uses: gonuit/heroku-docker-deploy@v1.3.3
-        with:
-          email: ${{ secrets.HEROKU_EMAIL }}
+      - name: Checkout
+        uses: actions/checkout@v2
 
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      - name: Maven build/package
+        run: mvn -B package --file pom.xml
 
-          heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+      - name: Docker image push
+        run: heroku container:push web --app springboot-intens
 
-          dockerfile_directory: ./
-
-          dockerfile_name: Dockerfile
-
-          docker_options: "--no-cache"
+      - name: Docker image release
+        run: heroku container:release web --app springboot-intens
